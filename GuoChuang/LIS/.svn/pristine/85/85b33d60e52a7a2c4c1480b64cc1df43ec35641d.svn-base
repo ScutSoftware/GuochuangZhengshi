@@ -1,0 +1,61 @@
+#wrapper
+{
+	margin: 0px auto 0px auto;
+	padding: 0px;
+	width: 1300px;
+	border: 1px solid #777;
+	background-color: #ccc;
+}
+
+#header
+{
+	width: inherit;
+	height: 70px;
+	background-color: #cb3456;
+}
+
+#content
+{
+	width: inherit;
+	height: 500px;
+}
+
+#menu
+{
+	padding: 10px;
+	float: left;
+	width: 25%;
+	height: inherit;
+	background-color: #976543;
+}
+
+#infowin
+{
+	float: right;
+	width: 75%;
+	height: inherit;
+}
+
+#infowin>iframe[name='infowindow']
+{
+	border: 0px;
+	width: 100%; 
+	height: inherit;
+}
+
+#footer
+{
+	position: relative;
+	width: inherit;
+	height: 15px;
+	text-lign: center;
+	background-color: #437451;
+}
+
+#footer>p
+{
+	position: absolute;
+	font-size: 2px;
+	left: 500px;
+	top: -1px;
+}

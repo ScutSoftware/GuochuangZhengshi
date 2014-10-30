@@ -1,0 +1,13 @@
+package com.lis.service;
+
+import java.util.List;
+
+import com.lis.model.ComplaintText;
+
+public interface SegmentationService {
+	public boolean isMatching(String Pattern ,String text);
+	
+	public List<String> getMatchingTexts(List<ComplaintText> list,String[] keyWords);
+	
+	public List<ComplaintText> getTextRecords();
+}

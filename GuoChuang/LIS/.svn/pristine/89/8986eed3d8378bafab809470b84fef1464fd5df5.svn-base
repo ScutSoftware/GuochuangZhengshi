@@ -1,0 +1,48 @@
+package com.lis.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
+@SuppressWarnings("serial")
+@Entity
+@Table(name="t_netword_relation")
+public class NetworkRelation implements Serializable{
+	@Id
+	@GenericGenerator(name="generator", strategy="identity")
+	@GeneratedValue(generator="generator")
+	@Column(name="PK_Network_relation_ID", nullable=false, unique=true)
+	private int networkRelationIDPK ;
+	@Column(name="Parent_Keyword", nullable=false, length=5)
+	private String parentKeyword;
+	@Column(name="Child_Keyword", nullable=false)
+	private double childKeyword;
+	@Column(name="Score", nullable=false)
+	private double score;
+	public int getNetworkRelationIDPK() {
+		return networkRelationIDPK;
+	}
+	public void setNetworkRelationIDPK(int networkRelationIDPK) {
+		this.networkRelationIDPK = networkRelationIDPK;
+	}
+	public String getParentKeyword() {
+		return parentKeyword;
+	}
+	public void setParentKeyword(String parentKeyword) {
+		this.parentKeyword = parentKeyword;
+	}
+	public double getChildKeyword() {
+		return childKeyword;
+	}
+	public void setChildKeyword(double childKeyword) {
+		this.childKeyword = childKeyword;
+	}
+	
+	
+
+}

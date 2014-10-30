@@ -1,0 +1,24 @@
+.panel
+{
+	margin: 80px auto 0px auto;
+	width: 600px;
+}
+
+.panel-body
+{
+	padding-top: 40px;
+	padding-left: 40px;
+	position: relative;
+}
+
+.form-control
+{
+	width: 300px;
+}
+
+.panel-body p
+{
+	position: absolute;
+	bottom: 20px;
+	right: 40px;
+}

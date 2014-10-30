@@ -1,0 +1,46 @@
+package com.lis.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
+@SuppressWarnings("serial")
+@Entity
+@Table(name="t_service_request_type")
+public class ServiceRequestType implements Serializable{
+	
+	@Id
+	@GenericGenerator(name = "generator", strategy = "identity")
+	@GeneratedValue(generator = "generator")
+	@Column(name = "PK_Service_Request_Type_ID", nullable = false, unique = true)
+	private Integer serviceRequestTypeIDPK;
+	@Column(name = "Parent_ID", nullable = false)
+	private Integer parentID;
+	@Column(name = "Service_Request_Name", nullable = false)
+	private Integer serviceRequestName;
+	public Integer getServiceRequestTypeIDPK() {
+		return serviceRequestTypeIDPK;
+	}
+	public void setServiceRequestTypeIDPK(Integer serviceRequestTypeIDPK) {
+		this.serviceRequestTypeIDPK = serviceRequestTypeIDPK;
+	}
+	public Integer getParentID() {
+		return parentID;
+	}
+	public void setParentID(Integer parentID) {
+		this.parentID = parentID;
+	}
+	public Integer getServiceRequestName() {
+		return serviceRequestName;
+	}
+	public void setServiceRequestName(Integer serviceRequestName) {
+		this.serviceRequestName = serviceRequestName;
+	}
+	
+
+}

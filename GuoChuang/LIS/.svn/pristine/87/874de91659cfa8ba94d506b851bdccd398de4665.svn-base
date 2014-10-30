@@ -1,0 +1,35 @@
+package com.lis.model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
+@SuppressWarnings("serial")
+@Entity
+@Table(name="t_intermediate_words")
+public class Intermediate_Word {
+
+	@Id
+	@GenericGenerator(name="generator", strategy="identity")
+	@GeneratedValue(generator="generator")
+	@Column(name="PK_Intermediate_Words_ID", nullable=false, unique=true)
+	private int intermediateWordIDPK ;
+	@Column(name="Intermedate_Words", nullable=false, length=20)
+	private String intermediateWords;
+	public int getIntermediateWordIDPK() {
+		return intermediateWordIDPK;
+	}
+	public void setIntermediateWordIDPK(int intermediateWordIDPK) {
+		this.intermediateWordIDPK = intermediateWordIDPK;
+	}
+	public String getIntermediateWords() {
+		return intermediateWords;
+	}
+	public void setIntermediateWords(String intermediateWords) {
+		this.intermediateWords = intermediateWords;
+	}
+
+}

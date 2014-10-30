@@ -1,0 +1,47 @@
+package com.lis.model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
+
+import org.hibernate.annotations.GenericGenerator;
+
+@SuppressWarnings("serial")
+@Entity
+@Table(name="t_problem_type")
+public class Problem_Type {
+	@Id
+	@GenericGenerator(name="generator", strategy="identity")
+	@GeneratedValue(generator="generator")
+	@Column(name="PK_Problem_Type", nullable=false, unique=true)
+	private int problemTypePK ;
+	@Column(name="Problem_Type_ID", nullable=false, length=15)
+	private String problemTypeID;
+	@Column(name="Problem_Type_Name", nullable=false, length=10)
+	private String problemTypeName;
+	public int getProblemTypePK() {
+		return problemTypePK;
+	}
+	public void setProblemTypePK(int problemTypePK) {
+		this.problemTypePK = problemTypePK;
+	}
+	public String getProblemTypeID() {
+		return problemTypeID;
+	}
+	public void setProblemTypeID(String problemTypeID) {
+		this.problemTypeID = problemTypeID;
+	}
+	public String getProblemTypeName() {
+		return problemTypeName;
+	}
+	public void setProblemTypeName(String problemTypeName) {
+		this.problemTypeName = problemTypeName;
+	}
+	
+	
+
+}
