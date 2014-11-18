@@ -1,0 +1,142 @@
+package com.lis.web.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.lis.model.ComplaintText;
+import com.lis.model.IntermediateWord;
+import com.lis.service.ClusterService;
+import com.lis.service.KeywordCorrectAndFeedbackPageService;
+import com.lis.service.ParticipleAndFilterService;
+import com.lis.service.SegmentationService;
+
+@Controller
+@RequestMapping("segmentation/")
+public class SegmentationController {
+
+	@Autowired
+	private SegmentationService segmentationService;
+	
+	@Autowired
+	private ParticipleAndFilterService participleAndFilterService;
+	
+	@Autowired 
+	private KeywordCorrectAndFeedbackPageService keywordCorrectAndFeedbackPageService;
+	
+	@Autowired
+	private ClusterService clusterService;
+	
+	@RequestMapping(value = "getServiceRequestType", method = RequestMethod.GET)
+	public  String getServiceRequestType(ModelMap map){
+		
+		List<IntermediateWord> wordList = keywordCorrectAndFeedbackPageService.list();
+		map.addAttribute("wordList", wordList);
+		
+		return "segmentation/query";
+	}
+	//用于重复跳转自己的页面
+	@RequestMapping(value = "getServiceRequestTypeChange", method = RequestMethod.POST)
+	public  String getServiceRequestTypeChange(ModelMap map){
+		
+		List<IntermediateWord> wordList = keywordCorrectAndFeedbackPageService.list();
+		map.addAttribute("wordList", wordList);
+		
+		return "segmentation/query";
+	}
+	
+	//从数据库中获取所有的投诉文本记录,并对投诉文本记录进行分词和抽取主题词
+	@RequestMapping(value = "getComplaintTextRecordsAndBussinessKeyword", method = RequestMethod.GET)
+	public @ResponseBody Object getComplaintTextRecordsAndBussinessKeyword(
+			@RequestParam(value="startTime")String startTime,
+			@RequestParam(value="endTime")String endTime,
+			@RequestParam(value="allCodeID")String allCodeID,
+			HttpServletRequest req){
+		System.out.println("startTime:" + startTime);
+		System.out.println("endTime:" + endTime);
+		System.out.println(allCodeID);
+		Map<String, Object> map = new HashMap<String, Object>();
+		try {			
+			
+			//获取数据库中文本记录
+			List<ComplaintText> complaintTextList = segmentationService.getTextRecords(startTime,endTime,allCodeID);
+			
+			System.out.println(complaintTextList.get(0).getComplaintContent());
+			//对文本记录进行分词和抽取名词处理
+			List<String> nonusList = participleAndFilterService.getNounsFromCompContent(complaintTextList);
+	
+			//根据要求输出相应的排序好的词组（（由方法一二得））
+			List<String> keywordList = clusterService.megaOutPut(nonusList);
+			System.out.println(keywordList.size());
+			
+			for(int i = 0; i < keywordList.size();i++){
+				System.out.println(keywordList.get(i));
+			}
+			
+			if(keywordList ==null && complaintTextList==null){
+				map.put("success", false);
+//				return "segmentation/queryResult";
+			}
+			
+			else{
+				map.put("keywordList", keywordList);
+				map.put("complaintTextList", complaintTextList);
+				map.put("success", true);
+//				return "segmentation/queryResult";
+			}
+			return map;
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			map.put("success", false);
+//			return "segmentation/queryResult";
+			return map;
+		}
+	}
+	
+	//获取匹配的投诉文本记录（List<ComplaintText> 投诉文本记录对象的list,String[] keyWords关键词数组）
+	@RequestMapping(value = "getMatchingComplaintTexts", method = RequestMethod.GET)
+	public @ResponseBody Object getMatchingComplaintTexts(
+			@RequestParam(value="startTime")String startTime,
+			@RequestParam(value="endTime")String endTime,
+			@RequestParam(value="keyword")String keyword,HttpServletRequest req){
+		Map<String, Object> map = new HashMap<String, Object>();
+		try {
+			keyword = new String(keyword.getBytes("ISO-8859-1"), "UTF-8");
+			System.out.println("--------------------------------------------------------------");
+			System.out.println(keyword);
+			//获取数据库中文本记录
+			List<ComplaintText> complaintTextList = segmentationService.getTextRecords(startTime,endTime);
+			
+			String[] keyWords = {keyword};			
+			
+			List<String> matchingComplaintTexts = segmentationService.getMatchingTexts(complaintTextList, keyWords);
+			for(int i = 0; i < matchingComplaintTexts.size();i++){
+				System.out.println(matchingComplaintTexts.get(i));
+			}
+			
+			map.put("matchingComplaintTexts", matchingComplaintTexts);
+			map.put("success", true);
+//			return "segmentation/matchResult";
+			return map;
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			map.put("success", false);
+			return map;
+//			return "segmentation/matchResult";
+		}
+		
+	}
+}

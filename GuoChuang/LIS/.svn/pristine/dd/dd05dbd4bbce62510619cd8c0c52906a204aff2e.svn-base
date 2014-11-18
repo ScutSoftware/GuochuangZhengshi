@@ -1,0 +1,85 @@
+package com.lis.web.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.lis.model.ComplaintText;
+import com.lis.model.IntermediateWord;
+import com.lis.service.ClusterService;
+import com.lis.service.ComplaintHotTopicAndEmotionAnalysisPageService;
+import com.lis.service.ParticipleAndFilterService;
+import com.lis.service.SegmentationService;
+
+@Controller
+@RequestMapping("complainthottopic/")
+public class ComplaintHotTopicAndEmotionAnalysisPageController {
+
+	@Autowired
+	private ComplaintHotTopicAndEmotionAnalysisPageService complaintHotTopicAndEmotionAnalysisPageService;
+	@Autowired
+	private ClusterService clusterService ;
+	@Autowired
+	private ParticipleAndFilterService participleAndFilterService ;
+	@Autowired
+	private SegmentationService segmentationService ;
+	
+	
+	@RequestMapping(value = "getConfirm", method = RequestMethod.POST)
+	public String getConfirm(ModelMap map,
+			@RequestParam(value="keywordList")String KeyWord){
+		    List<ComplaintText> complaintTextList = complaintHotTopicAndEmotionAnalysisPageService.getAllTextRecords();
+            String [] keywordArray = new String [1] ;
+            keywordArray[0] = KeyWord ;
+		    List<String> matchingText = segmentationService.getMatchingTexts(complaintTextList, keywordArray);
+		    map.put("matchingText", matchingText);
+		    map.put("success", true);
+		    return "complainthottopic/textRecord";
+		
+	}
+	
+	@RequestMapping(value = "getTextRecords", method = RequestMethod.GET)
+	public  String getTextRecords(ModelMap map) throws Exception{
+
+		List<ComplaintText> complaintTextList = complaintHotTopicAndEmotionAnalysisPageService.getAllTextRecords();
+		List<String> Noun = participleAndFilterService.getNounsFromCompContent(complaintTextList);
+		List<String> keywordList = clusterService.megaOutPut(Noun);
+		for(int i = 0 ;i< keywordList.size() ;i++){
+			System.out.print(keywordList.get(i));
+		}
+		map.put("complaintTextList", complaintTextList);
+		map.put("keywordList", keywordList);
+		map.put("success", true);
+		return "complainthottopic/complainthotWord";
+	}
+	//实现跨页面跳转
+	
+	@RequestMapping(value = "getServiceRequestType", method = RequestMethod.GET)
+	public  String getServiceRequestType(ModelMap map){
+		
+		//List<IntermediateWord> wordList = keywordCorrectAndFeedbackPageService.list();
+		//map.addAttribute("wordList", wordList);
+		
+		return "segmentation/query";
+	}
+	//用于重复跳转自己的页面
+	@RequestMapping(value = "getTextRecordsChange", method = RequestMethod.POST)
+	public  String getTextRecordsChange(ModelMap map) throws Exception{
+
+		List<ComplaintText> complaintTextList = complaintHotTopicAndEmotionAnalysisPageService.getAllTextRecords();
+		List<String> Noun = participleAndFilterService.getNounsFromCompContent(complaintTextList);
+		List<String> keywordList = clusterService.megaOutPut(Noun);
+		for(int i = 0 ;i< keywordList.size() ;i++){
+			System.out.print(keywordList.get(i));
+		}
+		map.put("complaintTextList", complaintTextList);
+		map.put("keywordList", keywordList);
+		map.put("success", true);
+		return "/complainthotWord";
+	}
+}

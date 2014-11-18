@@ -1,0 +1,120 @@
+package com.lis.web.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import net.sf.json.JSONArray;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.lis.model.IntermediateWord;
+import com.lis.model.Method1;
+import com.lis.model.Method2;
+import com.lis.service.ClusterService;
+import com.lis.service.KeywordCorrectAndFeedbackPageService;
+import com.lis.service.ParticipleAndFilterService;
+import com.lis.service.PrioritySortService;
+
+@Controller
+@RequestMapping("keyword")
+public class KeywordCorrectAndFeedbackPageController {
+	
+	
+	@Autowired
+	private ClusterService clusterService;
+	
+	@Autowired
+	private PrioritySortService prioritySortService;
+	
+	@Autowired
+	private ParticipleAndFilterService participleAndFilterService;
+	
+	@Autowired
+	private KeywordCorrectAndFeedbackPageService keywordCorrectAndFeedbackPageService;
+	
+//	@RequestMapping(value="/keyWord", method=RequestMethod.GET)
+//	public String showKeyWord(Model model) {
+//		
+//
+//		List<IntermediateWord> wordList = keywordCorrectAndFeedbackPageService.list();
+//		model.addAttribute("wordList", wordList);
+//		
+//		return "keyword/keyWord";
+//	}
+	
+	@RequestMapping(value="/addKeyWork", method=RequestMethod.POST)
+	public void addKeyWord(HttpSession session, HttpServletRequest request,
+			HttpServletResponse response) {
+		
+		JSONArray jsonArray = JSONArray.fromObject(request.getParameter("word"));
+		
+		List<IntermediateWord> intermediateWordList = null;
+		List<String> word = JSONArray.fromObject(jsonArray);
+		for(String s : word) {
+			System.out.println(s);
+		}
+//		try {
+//			List<HQLConditionQuery> condition = new ArrayList<HQLConditionQuery>();
+//			HQLConditionQuery query = new HQLConditionQuery();
+//			query.add(" word in :word", "word", word);
+//			condition.add(query);
+//			intermediateWordList = keywordCorrectAndFeedbackPageService.list(condition, null); 
+//			
+//		} catch(Exception e) {
+//			e.printStackTrace();
+//		}
+		
+		List<Method1> method1List = keywordCorrectAndFeedbackPageService.getMethod1();
+		List<String> method1WordList = new ArrayList<String>();
+		for(Method1 s : method1List) {
+			method1WordList.add(s.getName());
+		}
+		
+		
+		List<Method2> method2List = keywordCorrectAndFeedbackPageService.getMethod2();
+		List<String> method2WordList = new ArrayList<String>();
+		for(Method2 s : method2List) {
+			method2WordList.add(s.getName());
+		}
+		
+		
+		//计算新顺序的关键词分数，并存入到数据库中
+		prioritySortService.keywordSort(word, method1WordList, method2WordList);
+		
+		//将从前端获得字符串返回前端显示，进行关联
+		session.setAttribute("wordList2", word);
+	}
+	
+	//从前端得到关键词之间的关联关系，
+	//keyword（单选词）
+	//关联
+	//list（多选词）
+	@RequestMapping(value="/getRelatedWord",method=RequestMethod.POST)
+	public String getRelatedWord(Model model,
+			@RequestParam(value="keyWord") String keyWord,
+			@RequestParam(value="list")String[] list) {
+		
+		List<String> wordList = new ArrayList<String>();
+		System.out.println(keyWord);
+		for(String s : list) {
+			System.out.println(s);
+			wordList.add(s);
+		}
+		
+		double score = keywordCorrectAndFeedbackPageService.synthesisArithmetic(wordList);
+		System.out.println(score);
+		keywordCorrectAndFeedbackPageService.saveScore(keyWord, list, score);
+		
+		
+		return null;
+	}
+}

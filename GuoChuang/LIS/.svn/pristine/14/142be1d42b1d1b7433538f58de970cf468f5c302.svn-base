@@ -1,0 +1,98 @@
+package com.lis.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.OrderBy;
+
+import org.hibernate.criterion.Order;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.lis.dao.AlgorithmWeightDao;
+import com.lis.model.AlgorithmWeight;
+import com.lis.model.User;
+import com.lis.service.PrioritySortService;
+import com.lis.util.HQLConditionQuery;
+import com.lis.util.HQLOrderBy;
+
+@Service("prioritySortService")
+@Transactional
+public class PrioritySortServiceImpl implements PrioritySortService{
+
+	private AlgorithmWeightDao algorithmWeightDao;
+	
+	@Autowired
+	public void setAlgorithmWeightDao(AlgorithmWeightDao algorithmWeightDao) {
+		this.algorithmWeightDao = algorithmWeightDao;
+	}
+	
+	public void keywordSort(List<String>  keyword, List<String> method1, List<String> method2 )
+    {
+        int orderFactor = 5 ;
+        int numKeyword = keyword.size();
+        
+        List<AlgorithmWeight> list1 = getAlgorithmWeight("method1");
+        List<AlgorithmWeight> list2 = getAlgorithmWeight("method2");
+        double methodScore1 = list1.get(0).getWeight();
+        double methodScore2 = list2.get(0).getWeight();
+        
+        boolean numMatch1=false;
+        int placeMatch1 = 0 ;
+        boolean numMatch2=false;
+        int placeMatch2 = 0 ;
+
+        for(int i=0; i<keyword.size(); i++)//匹配方法1
+        {
+            for(int j=0; j<method1.size(); j++)
+            {
+                if(keyword.get(i).trim().equals(method1.get(j).trim()))
+                {
+                    numMatch1 = true ;
+                    placeMatch1=i+1;
+                    methodScore1 += Math.floor(orderFactor*((double)placeMatch1/keyword.size()));
+                    
+                    list1.get(0).setWeight(methodScore1);
+                    algorithmWeightDao.saveOrUpdate(list1.get(0));
+                }
+            }
+        }
+     
+        for(int i=0; i<keyword.size(); i++)//匹配方法2
+        {
+            for(int j=0;j<method2.size();j++)
+            {
+                if(keyword.get(i).trim().equals(method2.get(j).trim()))
+                {
+                    numMatch2 = true;
+                    placeMatch2=i+1;
+                    methodScore2 += Math.floor(orderFactor*((double)placeMatch2/keyword.size()));
+
+                    list2.get(0).setWeight(methodScore2);
+                    algorithmWeightDao.saveOrUpdate(list2.get(0));
+                }
+            }
+        }
+         
+    }
+	
+	
+	
+	public List<AlgorithmWeight> getAlgorithmWeight(String method){
+		try {
+			List<HQLConditionQuery> hqlList = new ArrayList<HQLConditionQuery>();
+			HQLConditionQuery condition = new HQLConditionQuery();
+			condition.add("algorithmName like :algorithmName", "algorithmName", method);
+			hqlList.add(condition);	
+			List<AlgorithmWeight> algorithmWeightList = algorithmWeightDao.list(hqlList, null);
+			return algorithmWeightList;
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+}

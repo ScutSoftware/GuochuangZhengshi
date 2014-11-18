@@ -1,0 +1,143 @@
+package com.lis.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.lis.dao.BaseDao;
+import com.lis.dao.IntermediateWordDao;
+import com.lis.dao.Method1Dao;
+import com.lis.dao.Method2Dao;
+import com.lis.dao.NetworkRelationDao;
+import com.lis.model.IntermediateWord;
+import com.lis.model.Method1;
+import com.lis.model.Method2;
+import com.lis.model.NetworkRelation;
+import com.lis.service.KeywordCorrectAndFeedbackPageService;
+import com.lis.util.HQLConditionQuery;
+
+@Service
+@Transactional
+public class KeywordCorrectAndFeedbackPageServiceImpl extends BaseServiceImpl<IntermediateWord,Integer> implements KeywordCorrectAndFeedbackPageService{
+
+	private IntermediateWordDao intermeditateWordDao;
+	
+	@Autowired
+	private Method1Dao method1Dao;
+	
+	@Autowired
+	private Method2Dao method2Dao;
+	
+	@Autowired 
+	private NetworkRelationDao networkRelationDao;
+	
+	@Autowired
+	public void setBaseDao(BaseDao<IntermediateWord,Integer> intermediateWordDao) {
+		this.baseDao = intermediateWordDao;
+		this.intermeditateWordDao = (IntermediateWordDao) intermediateWordDao;
+		
+	}
+	
+	
+	
+	@Override
+	public double synthesisArithmetic(List<String> word) {
+		// TODO Auto-generated method stub
+		 
+		//存取对应关键词的对象
+		List<IntermediateWord> list = new ArrayList<IntermediateWord>();
+		
+		//获取对应词
+		try {
+			HQLConditionQuery query = new HQLConditionQuery();
+			query.add(" word in :word", "word", word);
+			List<HQLConditionQuery> condition = new ArrayList<HQLConditionQuery>();
+			condition.add(query);
+			list = intermeditateWordDao.list(condition, null);
+		}catch(Exception e) {
+			
+			e.printStackTrace();
+		}
+		
+		return calculateScore(list);
+		
+	}
+	
+	//计算最后的综合分数
+	private double calculateScore(List<IntermediateWord> list) {
+		double score = Math.sqrt(list.size());
+		double temp = 1.0;
+		for(int i = 0; i < list.size(); i++ ) {
+			temp *= (double)list.get(i).getScore();
+		}
+		score *= Math.pow(temp, list.size());
+		System.out.println(score);
+		return score;
+		
+	}
+
+
+
+	@Override
+	public List<Method1> getMethod1() {
+		List<Method1> list = new ArrayList<Method1>();
+		try {
+			list = method1Dao.list();
+		} catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		return list;
+	}
+
+
+
+	@Override
+	public List<Method2> getMethod2() {
+		List<Method2> list = new ArrayList<Method2>();
+		try {
+			list = method2Dao.list();
+		} catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		return list;
+	}
+
+
+
+	@Override
+	public void saveScore(String keyWord, String[] list, double score) {
+		NetworkRelation networkRelation = new NetworkRelation();
+		StringBuffer sb = new StringBuffer();
+		for(int i = 0; i < list.length; i++) {
+			sb.append(list[i] + " ");
+		}
+		
+		String wordList = sb.toString();
+		System.out.println(wordList);
+		networkRelation.setParentKeyword(keyWord);
+		
+		networkRelation.setChildKeyword(wordList);
+		
+		networkRelation.setScore(score);
+		try {
+			
+			networkRelationDao.save(networkRelation);
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+	}
+
+
+	
+	
+
+
+}

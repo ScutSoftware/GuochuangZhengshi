@@ -1,0 +1,12 @@
+package com.lis.service;
+
+import java.util.List;
+
+import com.lis.model.ComplaintText;
+
+public interface ComplaintHotTopicAndEmotionAnalysisPageService {
+
+	
+	public List<ComplaintText> getAllTextRecords() ;
+
+}

@@ -1,0 +1,46 @@
+package com.lis.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
+
+@SuppressWarnings("serial")
+@Entity
+@Table(name="t_method1")
+public class Method1 implements Serializable{
+	@Id
+	@GenericGenerator(name="generator", strategy="identity")
+	@GeneratedValue(generator="generator")
+	@Column(name="PK_Mehthod1_ID", nullable=false, unique=true)
+	private int method1IDPK ;
+	@Column(name="Name", nullable=false, length=20)
+	private String name;
+	@Column(name="Score", nullable=true )
+	private int score;
+	public int getMethod1IDPK() {
+		return method1IDPK;
+	}
+	public void setMethod1IDPK(int method1idpk) {
+		method1IDPK = method1idpk;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public int getScore() {
+		return score;
+	}
+	public void setScore(int score) {
+		this.score = score;
+	}
+
+	
+}

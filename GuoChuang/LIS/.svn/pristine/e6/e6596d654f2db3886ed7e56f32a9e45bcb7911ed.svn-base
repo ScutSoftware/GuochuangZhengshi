@@ -1,0 +1,38 @@
+package com.lis.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.lis.dao.ComplaintTextDao;
+import com.lis.model.ComplaintText;
+import com.lis.service.ComplaintHotTopicAndEmotionAnalysisPageService;
+
+@Service("complaintHotTopicAndEmotionAnalysisPageService")
+@Transactional
+public class ComplaintHotTopicAndEmotionAnalysisPageServiceImpl implements ComplaintHotTopicAndEmotionAnalysisPageService{
+
+	
+	private ComplaintTextDao complaintTextDao;
+	
+	@Autowired
+	public void setComplaintTextDao(ComplaintTextDao complaintTextDao) {
+		this.complaintTextDao = complaintTextDao;
+	}
+	
+	@Override
+	public List<ComplaintText> getAllTextRecords() {
+		// TODO Auto-generated method stub
+		try {
+			List<ComplaintText> list = complaintTextDao.list();
+			return list;
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			return null;
+		}
+	}
+}
