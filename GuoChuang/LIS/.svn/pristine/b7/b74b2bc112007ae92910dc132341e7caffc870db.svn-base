@@ -1,0 +1,44 @@
+package com.lis.service;
+
+import java.util.List;
+
+import com.lis.model.ComplaintText;
+
+/**
+ * <p>类名称:ParticipleAndFilterService</p>
+ * <p>类描述:对文本进行分词及过滤</p>
+ * <p>单位:华南理工大学软件学院</p>
+ * @创建人 yixiu
+ * @创建时间 2014年10月29日 下午7:43:15
+ * @创建人联系方式：williamhao@foxmail.com
+ * @version v1.0
+ */
+
+public interface ParticipleAndFilterService {
+	//从数据库中找出所有文本记录进行分词，返回筛选出的所有名词
+	public List<String> getNouns();
+	//从数据库中找出所有文本记录进行分词，返回筛选出的所有动词
+	public List<String> getVerbs();
+	//从数据库中找出所有文本记录进行分词，返回筛选出的所有形容词
+	public List<String> getAdjs();
+	//从数据库中找出所有文本记录进行分词，返回筛选出的所有副词
+	public List<String> getAdvs();
+	//接收投诉文本并分词，返回所有名词
+	public List<String> getNounsFromCompContent(List<ComplaintText> list);
+	//接收投诉文本并分词，返回所有动词
+	public List<String> getVerbsFromCompContent(List<ComplaintText> list);
+	//接收投诉文本并分词，返回所有形容词
+	public List<String> getAdjsFromCompContent(List<ComplaintText> list);
+	//接收投诉文本并分词，返回所有副词
+	public List<String> getAdvsFromCompContent(List<ComplaintText> list);
+    //从数据库中读取文本，返回所有短语
+	public List<String> getDuanYu();
+	//接收投诉文本并分词，返回所有短语
+	public List<String> getDuanYuFromCompContent(List<ComplaintText> list);
+	//接收投诉文本，返回情感分数
+	public double getEmoScore(List<ComplaintText> list);
+	//从数据库中找出所有文本记录进行分词，返回筛选出的所有名词动词形容词
+	public List<String> getNounAdjVerbs();
+	//接收投诉文本，返回名词动词形容词
+	public List<String> getNounAdjVerbs(List<ComplaintText> list);
+}

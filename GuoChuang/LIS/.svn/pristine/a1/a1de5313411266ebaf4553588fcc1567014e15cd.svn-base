@@ -1,0 +1,264 @@
+package com.lis.service.impl;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.hibernate.engine.query.spi.HQLQueryPlan;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.lis.dao.BussinessKeywordDao;
+import com.lis.dao.ComplaintTextDao;
+import com.lis.dao.ServiceRequestTypeDao;
+import com.lis.model.BussinessKeyword;
+import com.lis.model.ComplaintText;
+import com.lis.model.ServiceRequestType;
+import com.lis.service.SegmentationService;
+import com.lis.util.ConditionQuery;
+import com.lis.util.HQLConditionQuery;
+import com.lis.util.HQLOrderBy;
+import com.lis.util.OrderBy;
+
+@Service("segmentationService")
+@Transactional
+public class SegmentationServiceImpl implements SegmentationService {
+
+	private ComplaintTextDao complaintTextDao;
+	
+	private BussinessKeywordDao bussinessKeywordDao;
+	
+	private ServiceRequestTypeDao serviceRequestTypeDao;
+	
+
+	@Autowired
+	public void setComplaintTextDao(ComplaintTextDao complaintTextDao) {
+		this.complaintTextDao = complaintTextDao;
+	}
+
+	@Autowired
+	public void setBussinessKeywordDao(BussinessKeywordDao bussinessKeywordDao) {
+		this.bussinessKeywordDao = bussinessKeywordDao;
+	}
+
+	@Autowired
+	public void setServiceRequestTypeDao(ServiceRequestTypeDao serviceRequestTypeDao) {
+		this.serviceRequestTypeDao = serviceRequestTypeDao;
+	}
+
+	// 判断两个字符串是否匹配，采用BM算法
+	@Override
+	public boolean isMatching(String pattern, String text) {
+		char[] t = pattern.toCharArray();
+		char[] p = text.toCharArray();
+		int plen = p.length, tlen = t.length;
+		int sum = 0;
+		if (plen < tlen) {
+			return false;
+		} 
+		else{
+			int i = tlen, k, j;
+
+			while (i <= plen) {
+				k = i;
+				j = tlen;
+				
+				while (j > 0 && p[i - 1] == t[j - 1]) {
+					i--;
+					j--;
+				}
+				
+				if (0 == j) {
+					sum = sum + tlen;
+					return true;
+				} 
+				else {
+					sum = sum + k - (i - 1);
+					i = i + dist(p[i - 1], t);
+
+					if (i > plen) {
+						return false;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	private int dist(char c, char T[]) {
+		int n = T.length;
+		
+		if (c == T[n - 1]) {
+			return n;
+		}
+
+		for (int i = n; i >= 1; i--) {
+			if (T[i - 1] == c)
+				return n - i;
+		}
+
+		return n;
+	}
+
+
+	//从数据库中获取符合处理时间的所有的文本记录
+	@Override
+	public List<ComplaintText> getTextRecords(String startTime, String endTime) {
+		// TODO Auto-generated method stub
+		try {
+			String sql = "SELECT * FROM GuoChuang.t_complaint_text WHERE Process_Time BETWEEN \""+ startTime + "\" AND \"" + endTime + "\"";
+			List<Object[]> complaintTextList = complaintTextDao.nativeList(sql);
+			List<Integer> complaintTextPKList = new ArrayList<Integer>();
+			for(int i = 0; i < complaintTextList.size(); i++){
+				complaintTextPKList.add((Integer) complaintTextList.get(i)[0]);
+			}
+			HQLConditionQuery queryCondition = new HQLConditionQuery();
+			HQLOrderBy orderBy = new HQLOrderBy();
+			queryCondition.add("complaintTextIDPK in :list", "list", complaintTextPKList);
+			List<HQLConditionQuery> queryConditionList = new ArrayList<HQLConditionQuery>();
+			List<HQLOrderBy> orderByList = new ArrayList<HQLOrderBy>();
+			queryConditionList.add(queryCondition);
+			orderByList.add(orderBy);
+			List<ComplaintText> list = complaintTextDao.list(queryConditionList,orderByList);
+			return list;
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	//从数据库中获取符合插入时间的所有的文本记录   
+	@Override
+	public List<ComplaintText> getTextRecordsInsertTime(String startTime, String endTime) {
+		// TODO Auto-generated method stub
+		try {
+			String sql = "SELECT * FROM GuoChuang.t_complaint_text WHERE Insert_Time BETWEEN \""+ startTime + "\" AND \"" + endTime + "\"";
+			System.out.println(sql) ;
+			List<Object[]> complaintTextList = complaintTextDao.nativeList(sql);
+			List<Integer> complaintTextPKList = new ArrayList<Integer>();
+			for(int i = 0; i < complaintTextList.size(); i++){
+				complaintTextPKList.add((Integer) complaintTextList.get(i)[0]);
+			}
+			HQLConditionQuery queryCondition = new HQLConditionQuery();
+			HQLOrderBy orderBy = new HQLOrderBy();
+			queryCondition.add("complaintTextIDPK in :list", "list", complaintTextPKList);
+			List<HQLConditionQuery> queryConditionList = new ArrayList<HQLConditionQuery>();
+			List<HQLOrderBy> orderByList = new ArrayList<HQLOrderBy>();
+			queryConditionList.add(queryCondition);
+			orderByList.add(orderBy);
+			List<ComplaintText> list = complaintTextDao.list(queryConditionList,orderByList);
+			System.out.print(sql);
+			return list;
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	//获取和关键词匹配的文本记录
+	@Override
+	public List<String> getMatchingTexts(List<ComplaintText> list, String[] keyWords) {
+		// TODO Auto-generated method stub
+		try {
+			int keyWordsCount = keyWords.length;
+			List<String> results = new ArrayList<String>();
+			
+			//对于每个文本记录，都和指定关键词匹配一下，记录匹配次数在matchCount中
+			for(int i = 0 ; i < list.size(); i ++){
+				String complaintTextTemp = list.get(i).getComplaintContent();
+				int matchCount = 0;
+				for(int j = 0; j < keyWords.length; j ++){
+					if(isMatching(keyWords[j],complaintTextTemp)){
+						matchCount++;
+					}
+				}
+				
+				//比较是否全部匹配，是则放入结果中
+				if(matchCount == keyWordsCount){
+					results.add(complaintTextTemp);
+				}
+			}		
+			return results;
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			return null;
+		}
+		
+	}
+
+	@Override
+	public List<BussinessKeyword> getBusinessKeywords() {
+		// TODO Auto-generated method stub
+		try {
+			return bussinessKeywordDao.list();
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@Override
+	public List<ComplaintText> getTextRecords() {
+		try {
+			List<ComplaintText> list = complaintTextDao.list();
+			return list;
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@Override
+	public List<ComplaintText> getTextRecords(String startTime, String endTime,
+			String allCodeID) {
+		try {
+			
+			//根据allCodeID获取服务请求类型
+			HQLConditionQuery queryCondition = new HQLConditionQuery();
+			HQLOrderBy orderBy = new HQLOrderBy();
+			
+			queryCondition.add("allCodeID =:ID", "ID", allCodeID);
+			List<HQLConditionQuery> queryConditionList = new ArrayList<HQLConditionQuery>();
+			List<HQLOrderBy> orderByList = new ArrayList<HQLOrderBy>();
+			queryConditionList.add(queryCondition);
+			orderByList.add(orderBy);
+			List<ServiceRequestType> serviceRequestTypeList = serviceRequestTypeDao.list(queryConditionList,orderByList);
+			if(serviceRequestTypeList.size() == 1){
+				ServiceRequestType serviceRequestType = serviceRequestTypeList.get(0);
+				
+			//根据服务请求类型和时间获取投诉文本记录
+				String sql = "SELECT * FROM GuoChuang.t_complaint_text WHERE Process_Time BETWEEN \""+ startTime + "\" AND \"" + endTime + "\""
+							+ " and FK_Service_Request_Type =" + serviceRequestType.getServiceRequestTypeIDPK();
+				List<Object[]> complaintTextList = complaintTextDao.nativeList(sql);
+				if(complaintTextList.size() > 0){
+					List<Integer> complaintTextPKList = new ArrayList<Integer>();
+					for(int i = 0; i < complaintTextList.size(); i++){
+						complaintTextPKList.add((Integer) complaintTextList.get(i)[0]);
+					}
+					HQLConditionQuery complainTextCondition = new HQLConditionQuery();
+					complainTextCondition.add("complaintTextIDPK in :list", "list", complaintTextPKList);
+					List<HQLConditionQuery> complainTextConditionList = new ArrayList<HQLConditionQuery>();
+					complainTextConditionList.add(complainTextCondition);
+					List<ComplaintText> list = complaintTextDao.list(complainTextConditionList,orderByList);
+					return list;					
+				}
+				
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	
+	
+}

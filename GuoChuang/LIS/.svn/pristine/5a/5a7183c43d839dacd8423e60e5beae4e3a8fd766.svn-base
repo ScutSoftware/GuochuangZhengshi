@@ -1,0 +1,36 @@
+package com.lis.service;
+
+import java.util.List;
+
+import com.lis.model.IntermediateWord;
+import com.lis.model.Method1;
+import com.lis.model.Method2;
+
+public interface KeywordCorrectAndFeedbackPageService extends BaseService<IntermediateWord,Integer>{
+
+	/*
+	 * 综合算法    √n*n√(&SC1*SC2*SC3*……*SCN)
+	 */
+	public double synthesisArithmetic(List<String> word);
+	
+	/*
+	 * 得到Method1的关键词字符串
+	 */
+	public List<Method1> getMethod1();
+	
+	/**
+	 * 得到Method2的关键词字符串
+	 */
+	public List<Method2> getMethod2();
+	
+	/**
+	 * 将综合分数写入数据库
+	 */
+	public void saveScore(String keyWord, String[] list , double score);
+	
+	/**
+	 * 清除Method1，Method2，IntermediateWord数据库
+	 */
+	public void clear();
+
+}
